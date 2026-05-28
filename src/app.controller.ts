@@ -1,8 +1,17 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import { BuyInventoryDto } from './buyinginventary';
 import { User } from './user';
 import { Inventory } from './inventary';
+import { InventoryQuery } from './query';
 
 @Controller('inventory')
 export class AppController {
@@ -31,5 +40,10 @@ export class AppController {
   @Delete('users/:id')
   async deleteUser(@Param('id') id: number) {
     return await this.appService.deleteUser(id);
+  }
+  @Get('inventories')
+  async getbyinventoryname(@Query('name') name: InventoryQuery) {
+    console.log(name);
+    return await this.appService.getbyinventoryname(name);
   }
 }

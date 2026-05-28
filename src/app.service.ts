@@ -10,6 +10,7 @@ import { Inventory } from './inventary';
 import { User } from './user';
 import { MoneyTransition } from './moneytransition';
 import { BuyInventoryDto } from './buyinginventary';
+import { InventoryQuery } from './query';
 
 @Injectable()
 export class AppService {
@@ -80,5 +81,18 @@ export class AppService {
   }
   async deleteUser(id: number) {
     return await this.userRepository.delete(id);
+  }
+  async getbyinventoryname(name: InventoryQuery) {
+    const { name: inventoryName } = name;
+    console.log('Searching for inventory with name:', inventoryName);
+    const queryBuilder =
+      this.inventoryRepository.createQueryBuilder('inventory');
+
+    if (inventoryName) {
+      queryBuilder.where('inventory.name ILIKE :name', {
+        name: `%${inventoryName}%`,
+      });
+    }
+    return await queryBuilder.getMany();
   }
 }

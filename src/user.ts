@@ -10,6 +10,8 @@ export class User {
   email: string;
   @Column()
   password: string;
+  @Column({ nullable: true })
+  DOB: Date;
   @OneToMany(() => MoneyTransition, (transition) => transition.user)
   transitions: MoneyTransition[];
 }

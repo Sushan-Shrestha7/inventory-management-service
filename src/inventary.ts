@@ -10,7 +10,9 @@ export class Inventory {
 
   @Column()
   quantity: number;
-  @Column({ nullable: true })
+
+  @Column()
+  category!: string;
   price: number;
   @OneToMany(() => MoneyTransition, (transition) => transition.inventory)
   transitions: MoneyTransition[];
