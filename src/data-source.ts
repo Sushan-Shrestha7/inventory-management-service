@@ -21,4 +21,10 @@ export const dataSourceOptions: DataSourceOptions = {
 export const dataSource = new DataSource(dataSourceOptions);
 // npm run migration:generate src_migrations/migrationfile
 // npm run migration:run
+export const jwtConstants = {
+  secret: process.env.JWT_SECRET || 'fallback-secret-key',
+  // fallback is for development only — never use a weak secret in production
 
+  expiresIn: 24 * 60 * 60, // 86400 seconds = 1 day
+  refreshExpiresIn: 7 * 24 * 60 * 60, // 604800 seconds = 7 days
+};
