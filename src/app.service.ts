@@ -2,15 +2,19 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-
+import { JwtService } from '@nestjs/jwt';
 import { Inventory } from './inventary';
 import { User } from './user';
 import { MoneyTransition } from './moneytransition';
 import { BuyInventoryDto } from './buyinginventary';
 import { InventoryQuery } from './query';
+import * as bycrypt from 'bcryptjs';
+import { Role } from './role.enum';
+import { JwtPayload } from './payload.interface';
 
 @Injectable()
 export class AppService {
@@ -23,6 +27,7 @@ export class AppService {
 
     @InjectRepository(MoneyTransition)
     private readonly moneyTransitionRepository: Repository<MoneyTransition>,
+    private readonly jwtService: JwtService,
   ) {}
   async createuser(dto: User) {
     return await this.userRepository.save(dto);
@@ -94,5 +99,58 @@ export class AppService {
       });
     }
     return await queryBuilder.getMany();
+  }
+  async validateUserById(id: number) {
+    return this.userRepository.findOne({
+      where: { id },
+    });
+  }
+  async register(dto: User) {
+    const existingUser = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
+    if (existingUser) {
+      throw new ConflictException('User with this email already exists');
+    }
+    const hashedPassword = await bycrypt.hash(dto.password, 12);
+    const newUser = this.userRepository.create({
+      name: dto.name,
+      email: dto.email,
+      password: hashedPassword,
+      role: dto.role || Role.Admin,
+    });
+    return await this.userRepository.save(newUser);
+  }
+  async login(dto: User) {
+    const payload: JwtPayload = {
+      sub: dto.id,
+      name: dto.name,
+      email: dto.email,
+      role: dto.role,
+    };
+    const token = await Promise.resolve(this.jwtService.sign(payload));
+    return {
+      access_token: token,
+      user: {
+        id: dto.id,
+        name: dto.name,
+        email: dto.email,
+        role: dto.role,
+      },
+    };
+  }
+  async validateUser(email: string, password: string): Promise<User | null> {
+    const user = await this.userRepository.findOne({
+      where: { email },
+    });
+    if (user && (await bycrypt.compare(password, user.password))) {
+      return user;
+    }
+    return null;
+  }
+  async getoneuser(id: number) {
+    return await this.userRepository.findOne({
+      where: { id },
+    });
   }
 }
